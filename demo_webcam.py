@@ -21,7 +21,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--modelo", type=Path, required=True, help="archivo modelo.joblib")
     ap.add_argument("--camara", type=int, default=0)
-    ap.add_argument("--detector", choices=["haar", "mediapipe"], default="haar")
+    ap.add_argument("--detector", choices=["auto", "haar", "mediapipe"], default="auto")
     ap.add_argument("--margen", type=float, default=0.2, help="mismo margen que en recortar_rostros.py")
     args = ap.parse_args()
 

@@ -11,6 +11,17 @@
 
 Todos los comandos se corren desde la **raíz del repo**.
 
+## Paso 0 — Bajar las fotos
+Las fotos están en el dataset privado de Hugging Face (repo de datos: `Dataset-Identificador-Rostros-ESCOM`).
+Bájenlas con su `descargar_datos.py` (o `hf download`) y déjenlas en `datos/crudo/` con esta estructura:
+
+```
+datos/crudo/<apellido_nombre>/set_01/001.jpg
+                            /set_02/001.jpg ...
+```
+Si ya las tienen en otra carpeta, usen `--entrada <ruta>` en los scripts en vez de copiarlas.
+Son fotos de cuerpo completo (~768×1536) y ~1000 por persona: el recorte tarda, déjenlo corriendo.
+
 ## Persona 1 — Auditoría
 ```bash
 python preprocesamiento/revisar_dataset.py
@@ -22,19 +33,21 @@ python preprocesamiento/revisar_dataset.py
 
 ## Persona 2 — Detección y recorte
 ```bash
-python preprocesamiento/recortar_rostros.py                    # Haar (rápido)
-python preprocesamiento/recortar_rostros.py --detector mediapipe   # si Haar falla mucho
+python preprocesamiento/recortar_rostros.py                        # auto: MediaPipe si está instalado, si no Haar
+python preprocesamiento/recortar_rostros.py --detector mediapipe   # recomendado para cuerpo completo y disfraces
+python preprocesamiento/recortar_rostros.py --detector haar        # si MediaPipe no instala
 ```
-- Recorta un cuadrado alrededor del rostro (con margen) y lo redimensiona a 224×224.
+- Recorta un cuadrado alrededor del rostro (con margen) y lo redimensiona a 224×224, conservando la carpeta de cada set.
 - Revisa `resultados/bitacora_recorte.csv`: las fotos `sin_rostro` hay que probarlas con el otro detector o recortarlas a mano.
 - Las `varios_rostros` toman el rostro más grande: verifiquen que sea el correcto.
 
 ## Persona 3 — Partición
 ```bash
-python preprocesamiento/particionar.py --bloque 3
+python preprocesamiento/particionar.py
 ```
-- Divide cada persona en 70 % train / 15 % val / 15 % test.
-- `--bloque N` mantiene juntas N fotos consecutivas (por nombre de archivo). Úsenlo si las fotos se tomaron en ráfaga: así no hay fotos casi idénticas en train y test (eso infla el accuracy y el profesor lo nota).
+- Divide cada persona en ~70 % train / 15 % val / 15 % test **repartiendo sets completos** (`set_01`, `set_02`…). Las fotos de un set son ráfagas casi idénticas; si se mezclaran entre train y test, el accuracy saldría inflado.
+- Como cada set puede tener otro disfraz o accesorio, test contiene looks que el modelo no vio: es una evaluación más honesta (y más difícil). Mencionen esto en el reporte.
+- Si no hay subcarpetas de sets, reparte fotos sueltas: `--modo foto --bloque 3` mantiene juntas 3 fotos consecutivas.
 - Semilla fija (42): todos obtienen la misma partición.
 
 ## Persona 4 — Control de calidad y documentación

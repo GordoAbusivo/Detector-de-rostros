@@ -51,7 +51,7 @@ def main():
     dup_por_persona = defaultdict(int)
     for rutas in duplicados:
         for r in rutas[1:]:
-            dup_por_persona[r.parent.name] += 1
+            dup_por_persona[r.relative_to(args.entrada).parts[0]] += 1
     for fila in filas:
         fila["duplicadas"] = dup_por_persona[fila["persona"]]
 

@@ -1,7 +1,11 @@
 """Detecta y recorta el rostro de cada foto de datos/crudo -> datos/recortes.
 
+Espera la estructura del repo de datos: <persona>/set_01/001.jpg (también acepta
+<persona>/001.jpg). La salida conserva la misma estructura.
+
 Uso (desde la raíz del repo):
     python preprocesamiento/recortar_rostros.py
+    python preprocesamiento/recortar_rostros.py --entrada ../Dataset-Identificador-Rostros-ESCOM/data
     python preprocesamiento/recortar_rostros.py --detector mediapipe --tam 224 --margen 0.2
 """
 import argparse
@@ -18,7 +22,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--entrada", type=Path, default=DATOS / "crudo")
     ap.add_argument("--salida", type=Path, default=DATOS / "recortes")
-    ap.add_argument("--detector", choices=["haar", "mediapipe"], default="haar")
+    ap.add_argument("--detector", choices=["auto", "haar", "mediapipe"], default="auto",
+                    help="auto = MediaPipe si está instalado, si no Haar")
     ap.add_argument("--tam", type=int, default=224, help="lado final del recorte en px")
     ap.add_argument("--margen", type=float, default=0.2, help="margen alrededor del rostro (fracción)")
     args = ap.parse_args()
@@ -47,7 +52,9 @@ def main():
                     caja = max(cajas, key=lambda c: c[2] * c[3])  # el rostro más grande
                     recorte = recortar_con_margen(img, caja, args.margen)
                     recorte = cv2.resize(recorte, (args.tam, args.tam))
-                    guardar_imagen(args.salida / carpeta.name / (ruta.stem + ".jpg"), recorte)
+                    # conserva la subcarpeta del set (set_01/001.jpg): así no se repiten nombres
+                    relativa = ruta.relative_to(carpeta).with_suffix(".jpg")
+                    guardar_imagen(args.salida / carpeta.name / relativa, recorte)
             conteo[estado] += 1
             if estado != "ok":
                 bitacora.append((str(ruta), estado))

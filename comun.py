@@ -40,7 +40,8 @@ def guardar_imagen(ruta, imagen):
 
 
 def listar_imagenes(carpeta):
-    return sorted(p for p in Path(carpeta).iterdir() if p.suffix.lower() in EXTENSIONES)
+    """Imágenes de una carpeta y de TODAS sus subcarpetas (persona/set_01/001.jpg)."""
+    return sorted(p for p in Path(carpeta).rglob("*") if p.is_file() and p.suffix.lower() in EXTENSIONES)
 
 
 # ------------------------------------------------------ detección de rostros
@@ -66,14 +67,25 @@ def detectar_rostros_haar(imagen):
 
 
 def crear_detector(nombre="haar"):
-    """Devuelve una función imagen -> lista de cajas. Opciones: 'haar', 'mediapipe'."""
+    """Devuelve una función imagen -> lista de cajas.
+
+    Opciones: 'haar', 'mediapipe' o 'auto' (MediaPipe si está disponible; si no, Haar).
+    Con fotos de cuerpo completo, MediaPipe detecta mejor rostros pequeños y con accesorios.
+    """
     if nombre == "haar":
         return detectar_rostros_haar
 
     import cv2
-    import mediapipe as mp
 
-    detector = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
+    try:
+        import mediapipe as mp
+
+        detector = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
+    except (ImportError, AttributeError) as error:
+        if nombre == "mediapipe":
+            raise RuntimeError(f"MediaPipe no está disponible ({error}). Instálalo con: pip install mediapipe") from error
+        print("AVISO: MediaPipe no está disponible; se usa Haar (falla más con disfraces y cuerpo completo).")
+        return detectar_rostros_haar
 
     def detectar(imagen):
         alto, ancho = imagen.shape[:2]

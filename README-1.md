@@ -6,8 +6,8 @@ Esta carpeta **no se sube a GitHub**: son fotos de personas reales. Compártanla
 
 ```
 datos/
-├── crudo/            # fotos originales: crudo/<nombre_persona>/foto1.jpg
-├── recortes/         # salida de recortar_rostros.py: recortes/<persona>/*.jpg
+├── crudo/            # fotos originales: crudo/<apellido_nombre>/set_01/001.jpg
+├── recortes/         # salida de recortar_rostros.py: recortes/<persona>/set_01/001.jpg
 └── particiones/      # salida de particionar.py
     ├── train/<persona>/*.jpg
     ├── val/<persona>/*.jpg
