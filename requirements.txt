@@ -1,0 +1,14 @@
+numpy
+scikit-learn
+scikit-image
+opencv-python<5   # la serie 4.x incluye el detector Haar que usa preprocesamiento
+matplotlib
+joblib
+
+# Equipo de entrenamiento (transformer)
+torch
+torchvision
+transformers
+
+# Opcional: detector de rostros alternativo (preprocesamiento --detector mediapipe)
+mediapipe
