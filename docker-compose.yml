@@ -1,0 +1,19 @@
+# Probar el modelo ya entrenado con el front, sin instalar nada salvo Docker.
+# Antes (una vez): copia el archivo models/ridge_antelope.joblib que te pasaron a la carpeta models/ de este proyecto.
+#
+#   mkdir -p models                                  # y pon ahi ridge_antelope.joblib
+#   export HOST_UID=$(id -u) HOST_GID=$(id -g)       # para que lo que se descargue a models/ sea tuyo y no de root
+#   docker compose up --build                        # luego abre http://localhost:7860
+#
+# En models/ se descargan solos (la primera vez, con internet) los modelos ONNX y de MediaPipe.
+# El puerto se publica SOLO en 127.0.0.1 (tu computadora). Si cambias PUERTO, el front lo usa en ambos lados.
+services:
+  front:
+    build: .
+    image: reco-facial
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    command: ["src/app.py", "--host", "0.0.0.0", "--sin-navegador", "--puerto", "${PUERTO:-7860}"]
+    ports:
+      - "127.0.0.1:${PUERTO:-7860}:${PUERTO:-7860}"
+    volumes:
+      - ./models:/app/models

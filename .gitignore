@@ -1,0 +1,30 @@
+# ===== DATOS BIOMETRICOS: NUNCA se suben a GitHub =====
+# Fotos, caras recortadas/alineadas, vectores (embeddings) y modelos entrenados identifican a personas reales.
+datasets/
+hf_data/
+data/
+vectors/
+reports/
+models/
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.npy
+*.npz
+*.pkl
+*.zip
+
+# Resultados: solo se sube lo agregado (metricas.json, historial.csv, comparacion.md).
+# por_clase, matriz_confusion, errores y clases llevan nombres de personas / rutas de fotos.
+resultados/**/por_clase.csv
+resultados/**/matriz_confusion.csv
+resultados/**/errores.csv
+resultados/**/clases.json
+
+# Python / entorno
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+.env

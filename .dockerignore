@@ -1,0 +1,7 @@
+# Lista BLANCA: solo entra al build lo que se nombra abajo. Asi nunca se copian fotos, vectores, modelos,
+# reportes, respaldos ni el repo git dentro de la imagen (datos biometricos).
+*
+!src
+!requirements.txt
+**/__pycache__
+**/*.pyc

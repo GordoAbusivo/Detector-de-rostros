@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reconocimiento facial</title>
+<style>
+  :root { --fondo:#f6f7f9; --tarjeta:#fff; --texto:#1c2430; --suave:#5b6675; --borde:#cfd6df; --acento:#2563eb;
+          --alta:#15803d; --media:#b45309; --baja:#b91c1c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo:#12161c; --tarjeta:#1b222b; --texto:#e8edf3; --suave:#98a3b3; --borde:#3a4452; --acento:#6ea0ff;
+            --alta:#4ade80; --media:#fbbf24; --baja:#f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto);
+         font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:24px 16px 40px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { margin:0 0 16px; color:var(--suave); }
+  #zona { background:var(--tarjeta); border:2px dashed var(--borde); border-radius:14px; min-height:260px;
+          display:flex; align-items:center; justify-content:center; text-align:center; padding:16px;
+          cursor:pointer; transition:border-color .15s, background .15s; }
+  #zona:hover, #zona:focus-visible, #zona.encima { border-color:var(--acento); outline:none; }
+  #zona.encima { background:color-mix(in srgb, var(--acento) 10%, var(--tarjeta)); }
+  #vista { max-width:100%; max-height:340px; border-radius:8px; }
+  #pista small { color:var(--suave); }
+  .fila { display:flex; align-items:center; gap:10px; margin:16px 0 0; }
+  select { font:inherit; padding:6px 10px; border-radius:8px; border:1px solid var(--borde);
+           background:var(--tarjeta); color:var(--texto); }
+  #estado { color:var(--suave); min-height:1.5em; margin:12px 0 0; }
+  #resultado { background:var(--tarjeta); border:1px solid var(--borde); border-radius:14px; padding:18px; margin-top:12px;
+               display:grid; grid-template-columns:1fr auto; gap:6px 16px; align-items:start; }
+  #persona { font-size:1.6rem; font-weight:700; overflow-wrap:anywhere; }
+  #cara { grid-row:1 / span 3; grid-column:2; border-radius:8px; border:1px solid var(--borde); image-rendering:auto; }
+  .confianza { font-size:1.15rem; }
+  .badge { font-weight:700; padding:1px 10px; border-radius:999px; border:2px solid currentColor; margin-left:6px; }
+  .alta { color:var(--alta); } .media { color:var(--media); } .baja { color:var(--baja); }
+  .barra { grid-column:1; height:10px; background:var(--borde); border-radius:999px; overflow:hidden; }
+  #relleno { height:100%; width:0; background:currentColor; transition:width .3s; }
+  #aviso { grid-column:1 / -1; margin:6px 0 0; color:var(--suave); font-size:.9rem; }
+  #leyenda { color:var(--suave); font-size:.85rem; margin-top:20px; }
+  #error { color:var(--baja); font-weight:600; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Reconocimiento facial</h1>
+  <p class="sub">Arrastra una foto (cualquier tamaño, sin recortar). Todo se procesa en tu computadora.</p>
+
+  <div id="zona" tabindex="0" role="button" aria-label="Arrastra una foto aquí o presiona Enter para elegirla">
+    <input type="file" id="archivo" accept="image/*,.heic,.heif" hidden>
+    <img id="vista" alt="Foto elegida" hidden>
+    <p id="pista">Arrastra una foto aquí<br><small>o haz clic para elegirla · también puedes pegarla con Ctrl+V</small></p>
+  </div>
+
+  <div class="fila"><label for="modelo">Modelo</label><select id="modelo"></select></div>
+  <p id="estado" role="status" aria-live="polite"></p>
+
+  <section id="resultado" aria-live="polite" hidden>
+    <div id="persona"></div>
+    <img id="cara" width="112" height="112" alt="Cara alineada que ve el modelo">
+    <div class="confianza">Confianza <strong id="valor"></strong><span id="nivel" class="badge"></span></div>
+    <div class="barra" aria-hidden="true"><div id="relleno"></div></div>
+    <p id="aviso"></p>
+  </section>
+
+  <p id="leyenda"></p>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const MAX_MB = 25;
+let ultimo = null;
+
+function estado(texto, esError) {
+  const e = $("estado"); e.textContent = texto;
+  e.style.color = esError ? "var(--baja)" : "var(--suave)"; e.style.fontWeight = esError ? "600" : "400";
+}
+
+async function iniciar() {
+  try {
+    const d = await (await fetch("/api/modelos")).json();
+    for (const m of d.modelos) { const o = document.createElement("option"); o.value = o.textContent = m; $("modelo").appendChild(o); }
+    $("modelo").value = d.defecto;
+    $("leyenda").textContent = "Confianza = parecido con el centro de la persona elegida: alta ≥ " + d.umbrales.alta.toFixed(2) +
+      ", media ≥ " + d.umbrales.media.toFixed(2) + ", baja por debajo. Una confianza baja no siempre es un error " +
+      "(cubrebocas, lentes oscuros o disfraz salen más bajas aunque acierte). Siempre responde una de las personas " +
+      "conocidas: no existe la opción «desconocido».";
+  } catch (e) { estado("No se pudo contactar con el servidor local.", true); }
+}
+
+async function analizar(archivo) {
+  if (!archivo) return;
+  if (archivo.size > MAX_MB * 1024 * 1024) { estado("La foto pesa más de " + MAX_MB + " MB.", true); return; }
+  ultimo = archivo;
+  $("resultado").hidden = true;
+  const v = $("vista"); v.hidden = false; $("pista").hidden = true;
+  v.onerror = () => { v.hidden = true; $("pista").hidden = false; $("pista").textContent = archivo.name; };
+  v.src = URL.createObjectURL(archivo);
+  estado("Analizando…", false);
+  try {
+    const r = await fetch("/api/predecir?modelo=" + encodeURIComponent($("modelo").value), {
+      method: "POST", headers: { "Content-Type": archivo.type || "application/octet-stream", "X-Reco": "1" }, body: archivo });
+    const d = await r.json();
+    if (!d.ok) { estado(d.error || "No se pudo analizar la foto.", true); return; }
+    $("persona").textContent = d.persona;
+    $("valor").textContent = d.confianza.toFixed(2);
+    const n = $("nivel"); n.textContent = d.nivel; n.className = "badge " + d.nivel;
+    $("relleno").className = d.nivel;            // el color de la barra sale de la clase alta / media / baja
+    $("relleno").style.width = Math.max(0, Math.min(100, d.confianza * 100)) + "%";
+    $("cara").src = d.cara;
+    $("aviso").textContent = d.n_rostros > 1 ? "Se detectaron " + d.n_rostros + " rostros; se usó el más grande." : "";
+    $("resultado").hidden = false;
+    estado("", false);
+  } catch (e) { estado("No se pudo analizar la foto.", true); }
+}
+
+const zona = $("zona");
+zona.addEventListener("click", () => $("archivo").click());
+zona.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("archivo").click(); } });
+$("archivo").addEventListener("change", e => { analizar(e.target.files[0]); e.target.value = ""; });
+for (const ev of ["dragenter", "dragover"]) zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.add("encima"); });
+for (const ev of ["dragleave", "drop"]) zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove("encima"); });
+zona.addEventListener("drop", e => analizar(e.dataTransfer.files[0]));
+// soltar la foto en cualquier parte de la pagina no debe abrirla en el navegador
+for (const ev of ["dragover", "drop"]) window.addEventListener(ev, e => e.preventDefault());
+window.addEventListener("drop", e => { if (!zona.contains(e.target)) analizar(e.dataTransfer.files[0]); });
+window.addEventListener("paste", e => {
+  const f = [...(e.clipboardData ? e.clipboardData.files : [])][0];
+  if (f) analizar(f);
+});
+$("modelo").addEventListener("change", () => { if (ultimo) analizar(ultimo); });
+iniciar();
+</script>
+</body>
+</html>

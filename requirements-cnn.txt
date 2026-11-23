@@ -1,0 +1,5 @@
+# Solo para ENTRENAR la CNN (src/entrenar_cnn.py). NO hace falta para probar el modelo con Docker.
+# Se instala ENCIMA de requirements.txt. Con GPU (por ejemplo en Colab) torch ya viene instalado.
+# Versiones minimas; en el reporte anoten las exactas con `pip freeze | grep -i -e torch`.
+torch>=2.4
+torchvision>=0.19
