@@ -67,6 +67,7 @@ python src/kaggle_preparar_caras.py                       # data/caras/ + data/c
 python src/entrenar_cnn_keras.py --modo scratch --tam 128 --epocas 60
 python src/entrenar_cnn_keras.py --modo finetune --arq mobilenetv2 --tam 224 --epocas 25
 python src/predecir_keras.py foto.jpg --modelo models/keras_mobilenetv2.keras --panel paneles
+python src/webcam_keras.py --modelo models/keras_mobilenetv2.keras   # en vivo con la webcam (en tu laptop; --camara 1 = externa)
 python src/comparar_modelos.py                            # resultados/comparacion.md
 ```
 
@@ -81,6 +82,7 @@ Para probar rápido: `--personas a b --max-por-persona 60`.
 | `src/kaggle_preparar_caras.py` | Baja el dataset persona por persona, recorta, borra las originales y escribe el manifiesto. Reanudable. |
 | `src/entrenar_cnn_keras.py` | Entrena y evalúa (scratch o fine-tuning). Normalización y aumento de datos van **dentro** del modelo. |
 | `src/predecir_keras.py` | Foto nueva → detecta la cara → top-3 personas con confianza (y panel opcional entrada / cara / predicción). |
+| `src/webcam_keras.py` | Reconocimiento en vivo con la webcam (o un video): recuadro con nombre y confianza. Se corre en tu computadora con el modelo descargado de Kaggle; necesita `opencv-python` (con ventanas). |
 
 ### Notas de diseño
 
@@ -133,7 +135,7 @@ _Pendiente: correr los comandos de arriba y pegar aquí `resultados/comparacion.
 ```
 src/                  scripts del pipeline, predicción, front (app.py) y comparación
   entrenar_cnn.py     CNN de PyTorch (B y C)
-  caras.py, kaggle_preparar_caras.py, entrenar_cnn_keras.py, predecir_keras.py     CNN de Keras (D)
+  caras.py, kaggle_preparar_caras.py, entrenar_cnn_keras.py, predecir_keras.py, webcam_keras.py     CNN de Keras (D)
   evaluar_embeddings.py, preparar_particiones.py, comparar_modelos.py
 kaggle/               notebook para entrenar el enfoque D en Kaggle
 Dockerfile, docker-compose.yml   probar el modelo en CPU

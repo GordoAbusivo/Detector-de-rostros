@@ -9,7 +9,7 @@
 tensorflow>=2.16
 mediapipe
 huggingface_hub
-opencv-python-headless
+opencv-python-headless    # en tu laptop, para src/webcam_keras.py cambia a: pip uninstall -y opencv-python-headless && pip install opencv-python
 pandas
 scikit-learn
 matplotlib
