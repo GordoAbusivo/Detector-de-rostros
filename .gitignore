@@ -9,6 +9,9 @@ models/
 *.joblib
 *.pt
 *.pth
+*.keras
+*.h5
+*.tflite
 *.onnx
 *.npy
 *.npz
@@ -28,3 +31,6 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 .env
+
+# Notebooks: NO subas una version ejecutada (las salidas muestran caras y nombres). Limpia las salidas antes de subirlo
+# (Kaggle: Edit > Clear all outputs; local: jupyter nbconvert --clear-output --inplace kaggle/*.ipynb).

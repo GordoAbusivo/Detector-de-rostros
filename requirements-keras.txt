@@ -1,0 +1,17 @@
+# Para la CNN de Keras: src/kaggle_preparar_caras.py, src/entrenar_cnn_keras.py y src/predecir_keras.py.
+# NO hace falta para probar el modelo con Docker. Es independiente de requirements.txt (que trae onnxruntime y CUDA
+# para ArcFace): puedes instalar uno, el otro o los dos.
+#
+# En KAGGLE ya vienen instalados TensorFlow, Keras, OpenCV, pandas, scikit-learn, matplotlib, pillow y tqdm:
+# solo falta   pip install -q mediapipe huggingface_hub   (el notebook de kaggle/ lo hace solo).
+#
+# Probado con: Python 3.13, TensorFlow 2.21 (CPU), Keras 3.15. Se necesita Keras 3 (TensorFlow >= 2.16).
+tensorflow>=2.16
+mediapipe
+huggingface_hub
+opencv-python-headless
+pandas
+scikit-learn
+matplotlib
+pillow
+tqdm
