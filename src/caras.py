@@ -42,11 +42,17 @@ class DetectorCaras:
                     raise
                 print(f"AVISO: MediaPipe no disponible ({type(e).__name__}); se usa solo Haar.")
         if backend in ("auto", "haar") or self.mp is None:
-            import cv2
-            ruta = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
-            self.haar = cv2.CascadeClassifier(str(ruta))
-            if self.haar.empty():
-                raise RuntimeError(f"No se pudo cargar {ruta}")
+            try:
+                import cv2
+                ruta = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
+                self.haar = cv2.CascadeClassifier(str(ruta))
+                if self.haar.empty():
+                    raise RuntimeError(f"No se pudo cargar {ruta}")
+            except Exception as e:
+                self.haar = None
+                if self.mp is None:          # sin MediaPipe, Haar es el unico detector: no hay nada con que seguir
+                    raise
+                print(f"AVISO: Haar de OpenCV no disponible ({type(e).__name__}: {e}); se usa solo MediaPipe.")
 
     # ------------------------------------------------------------ detectores individuales
     def _cajas_mediapipe(self, rgb):
