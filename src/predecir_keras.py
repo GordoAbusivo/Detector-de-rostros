@@ -28,6 +28,11 @@ CONFIANZA_ALTA, CONFIANZA_MEDIA = 0.70, 0.40
 def cargar_modelo(ruta):
     import keras
     ruta = Path(ruta)
+    if not ruta.exists():
+        raise SystemExit(f"ERROR: no existe el modelo '{ruta}' (carpeta actual: {Path.cwd()}).\n"
+                         "Si reiniciaste Colab, copialo de tu Drive: !mkdir -p models && cp /content/drive/MyDrive/escom_caras/models/* models/")
+    if not (ruta.parent / f"{ruta.stem}_clases.json").exists():
+        raise SystemExit(f"ERROR: falta {ruta.stem}_clases.json junto al modelo; copia los dos archivos juntos.")
     modelo = keras.models.load_model(ruta)
     clases = json.loads((ruta.parent / f"{ruta.stem}_clases.json").read_text(encoding="utf-8"))
     return modelo, clases
@@ -92,7 +97,7 @@ def main():
         try:
             rgb = cargar_rgb(ruta)
         except Exception as e:
-            print(f"{ruta}: no se pudo leer ({e})")
+            print(f"{ruta}: no se pudo leer ({e}). Carpeta actual: {Path.cwd()} (usa la ruta completa, p. ej. /content/webcam.jpg)")
             continue
         cara, _ = preparar_cara(rgb, detector, tam, a.margen)
         if cara is None:
