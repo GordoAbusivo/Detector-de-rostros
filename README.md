@@ -34,7 +34,8 @@ Siempre responde una de las 29 personas (no existe "desconocido"). Si falla algo
 
 ## Enfoque D: CNN en Keras sobre la cara (Kaggle)
 
-Notebook listo para correr: [`kaggle/entrenar_cnn_keras_kaggle.ipynb`](kaggle/entrenar_cnn_keras_kaggle.ipynb).
+Notebooks listos para correr: [`kaggle/entrenar_cnn_keras_kaggle.ipynb`](kaggle/entrenar_cnn_keras_kaggle.ipynb) y, si Kaggle te pide verificar la cuenta para usar Internet,
+[`colab/entrenar_cnn_keras_colab.ipynb`](colab/entrenar_cnn_keras_colab.ipynb) (Google Colab: Internet y GPU T4 sin verificación; guarda caras y modelo en tu Drive).
 
 ### Por qué recortar la cara
 
@@ -58,6 +59,8 @@ recorta la cara, **(2)** la CNN solo clasifica ese recorte. La red nunca tiene q
 3. En *Add-ons → Secrets*: crea `HF_TOKEN` (token de Hugging Face con **lectura** al dataset) y actívalo para el notebook.
 4. *Run All*. El notebook clona este repo, recorta las caras (reanudable), entrena y muestra curvas y métricas.
 5. Mantén el notebook **privado** (contiene caras y nombres en sus salidas).
+
+**Colab** (alternativa): abre `colab/entrenar_cnn_keras_colab.ipynb`, *Entorno de ejecución → GPU (T4)*, crea el secreto `HF_TOKEN` (icono 🔑, con acceso desde el notebook) y *Ejecutar todo*.
 
 Los mismos pasos desde terminal (con GPU, o en CPU para pruebas pequeñas), con `pip install -r requirements-keras.txt`:
 
@@ -137,7 +140,7 @@ src/                  scripts del pipeline, predicción, front (app.py) y compar
   entrenar_cnn.py     CNN de PyTorch (B y C)
   caras.py, kaggle_preparar_caras.py, entrenar_cnn_keras.py, predecir_keras.py, webcam_keras.py     CNN de Keras (D)
   evaluar_embeddings.py, preparar_particiones.py, comparar_modelos.py
-kaggle/               notebook para entrenar el enfoque D en Kaggle
+kaggle/, colab/        notebooks para entrenar el enfoque D en Kaggle o en Google Colab
 Dockerfile, docker-compose.yml   probar el modelo en CPU
 requirements.txt, requirements-cnn.txt, requirements-keras.txt
 ```
